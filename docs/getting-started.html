@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Getting Started — DentiScribe AI</title>
+<style>
+  :root {
+    --bg: #0b1220;
+    --surface: #121b2e;
+    --border: #26344d;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #38e1ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.7;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+  h1 { font-size: 1.9rem; font-weight: 800; margin-bottom: 0.25rem; }
+  h2 {
+    font-size: 1.25rem;
+    margin-top: 2.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #0b1220;
+    font-weight: 800;
+    font-size: 0.95rem;
+    margin-right: 0.5rem;
+  }
+  p, li { color: var(--muted); }
+  strong { color: var(--text); }
+  code {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.1rem 0.4rem;
+    color: var(--accent);
+    font-size: 0.9em;
+  }
+  .box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin: 1rem 0;
+  }
+  a { color: var(--accent); }
+  a.back { display: inline-block; margin-bottom: 1.5rem; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="./index.html">&larr; Back</a>
+    <h1>Getting Started</h1>
+    <p>Takes about 10 minutes the first time, mostly waiting for downloads. After that, using it takes seconds.</p>
+
+    <h2><span class="step-num">1</span>Install</h2>
+    <p>Download the installer from the home page and double-click it.</p>
+    <div class="box">
+      <p><strong>You'll see a blue "Windows protected your PC" screen.</strong> This is completely normal for free software from an independent developer — it's not a virus warning, it just means the file hasn't gone through Microsoft's paid certification program.</p>
+      <p>Click <strong>"More info"</strong> (small text, easy to miss), then click the <strong>"Run anyway"</strong> button that appears.</p>
+    </div>
+    <p>The app installs itself — no need to choose folders or click through options. It'll open automatically when done.</p>
+
+    <h2><span class="step-num">2</span>Create your account</h2>
+    <p>First time you open it, you'll be asked to create an account — just a username and password for this app, stored only on this computer. This isn't shared with anyone.</p>
+
+    <h2><span class="step-num">3</span>Run the one-time setup</h2>
+    <p>A setup screen appears automatically the first time. It installs two small, free pieces of software the app needs to run its AI locally:</p>
+    <ul>
+      <li><strong>Ollama</strong> — the note-formatting engine</li>
+      <li><strong>Whisper</strong> — the transcription engine</li>
+    </ul>
+    <p>Click each "Install" / "Download" button in order and wait for the progress bar. This downloads a few gigabytes total, so it's worth doing on a decent internet connection. You only need to do this once.</p>
+    <p>If something fails partway through, click <strong>"Skip for now"</strong> — you can reopen this screen anytime from the <strong>Setup</strong> button at the top of the app and pick up where you left off.</p>
+
+    <h2><span class="step-num">4</span>Teach it your style</h2>
+    <p>In the main screen, find <strong>"My Style Examples."</strong> Paste in 2-3 of your own previously-written notes (formatted however you normally write them). The AI uses these as a reference so its output matches how you actually write, not a generic template.</p>
+
+    <h2><span class="step-num">5</span>Use it</h2>
+    <ol>
+      <li>Click <strong>"Start Recording"</strong> during or after an encounter (or just paste in a transcript if you already have one)</li>
+      <li>Click <strong>"Stop Recording"</strong> when done — it transcribes automatically</li>
+      <li>Click <strong>"Format Note"</strong></li>
+      <li>Click <strong>"Copy"</strong> and paste the result into EXACT (or wherever it needs to go)</li>
+    </ol>
+    <p><strong>Always read the formatted note before using it.</strong> This is a drafting aid, not a replacement for your own clinical judgment.</p>
+
+    <h2>Troubleshooting</h2>
+    <div class="box">
+      <p><strong>The setup steps keep failing.</strong> Usually means antivirus or a restrictive network is blocking downloads. Try again on a different network, or ask whoever manages your practice's computers to allow this app through the firewall.</p>
+      <p><strong>Recording says "Could not access the microphone."</strong> Windows may be blocking mic access. Check Windows Settings &rarr; Privacy &amp; Security &rarr; Microphone, and make sure "Let apps access your microphone" is on.</p>
+      <p><strong>Antivirus flagged the installer.</strong> This can happen with any new, unsigned app (ironically because malware also often uses the same underlying framework this app is built on). If you're unsure, ask your IT person to verify the download source before running it.</p>
+    </div>
+
+    <p style="margin-top: 2.5rem; font-size: 0.85rem;">Questions or something broken? <!-- ADD YOUR SUPPORT EMAIL HERE --></p>
+  </div>
+</body>
+</html>
