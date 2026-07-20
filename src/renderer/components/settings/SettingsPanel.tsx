@@ -7,6 +7,7 @@ import { CREDENTIAL_NAMES, type CloudCredentialName } from '../../../common/type
 import type { AiConfigSchema } from '../../../common/types/aiConfig';
 import type { TranscriptionProviderId } from '../../../common/types/transcription';
 import type { LlmProviderId } from '../../../common/types/llm';
+import { toFriendlyErrorMessage } from '../../lib/ipcError';
 
 const CREDENTIAL_ROWS: Array<{ name: CloudCredentialName; label: string }> = [
   { name: CREDENTIAL_NAMES.deepgram, label: 'Deepgram' },
@@ -26,17 +27,22 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [loadError, setLoadError] = useState<string | null>(null);
+
   useEffect(() => {
-    window.dentiScribe.settings.getConfig().then(setConfig);
-    Promise.all(CREDENTIAL_ROWS.map((row) => window.dentiScribe.settings.hasCloudApiKey(row.name))).then(
-      (results) => {
+    window.dentiScribe.settings
+      .getConfig()
+      .then(setConfig)
+      .catch((err) => setLoadError(toFriendlyErrorMessage(err, 'Failed to load settings')));
+    Promise.all(CREDENTIAL_ROWS.map((row) => window.dentiScribe.settings.hasCloudApiKey(row.name)))
+      .then((results) => {
         const status: Record<string, boolean> = {};
         CREDENTIAL_ROWS.forEach((row, i) => {
           status[row.name] = results[i];
         });
         setKeyStatus(status);
-      }
-    );
+      })
+      .catch((err) => setLoadError(toFriendlyErrorMessage(err, 'Failed to load cloud API key status')));
   }, []);
 
   async function handleSave() {
@@ -48,7 +54,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save settings');
+      setError(toFriendlyErrorMessage(err, 'Failed to save settings'));
     } finally {
       setSaving(false);
     }
@@ -57,14 +63,32 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
   async function handleSaveKey(name: CloudCredentialName) {
     const value = keyInputs[name];
     if (!value?.trim()) return;
-    await window.dentiScribe.settings.setCloudApiKey(name, value);
-    setKeyStatus((prev) => ({ ...prev, [name]: true }));
-    setKeyInputs((prev) => ({ ...prev, [name]: '' }));
+    setError(null);
+    try {
+      await window.dentiScribe.settings.setCloudApiKey(name, value);
+      setKeyStatus((prev) => ({ ...prev, [name]: true }));
+      setKeyInputs((prev) => ({ ...prev, [name]: '' }));
+    } catch (err) {
+      setError(toFriendlyErrorMessage(err, 'Failed to save API key'));
+    }
   }
 
   async function handleClearKey(name: CloudCredentialName) {
-    await window.dentiScribe.settings.clearCloudApiKey(name);
-    setKeyStatus((prev) => ({ ...prev, [name]: false }));
+    setError(null);
+    try {
+      await window.dentiScribe.settings.clearCloudApiKey(name);
+      setKeyStatus((prev) => ({ ...prev, [name]: false }));
+    } catch (err) {
+      setError(toFriendlyErrorMessage(err, 'Failed to clear API key'));
+    }
+  }
+
+  if (loadError) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+        <p className="text-sm text-accent-red">{loadError}</p>
+      </div>
+    );
   }
 
   if (!config) {

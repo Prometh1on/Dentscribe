@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import type { SetupStatus, WhisperModelSize } from '../../../common/types/setup';
+import { toFriendlyErrorMessage } from '../../lib/ipcError';
 
 interface SetupWizardProps {
   onDone: () => void;
@@ -33,7 +34,7 @@ export function SetupWizard({ onDone }: SetupWizardProps) {
   }
 
   useEffect(() => {
-    refreshStatus();
+    refreshStatus().catch((err) => setError(toFriendlyErrorMessage(err, 'Failed to check setup status')));
     const unsubscribe = window.dentiScribe.setup.onProgress((event) => {
       setProgressMessage(event.message);
       setProgressPercent(event.percent ?? null);
@@ -50,7 +51,7 @@ export function SetupWizard({ onDone }: SetupWizardProps) {
       await action();
       await refreshStatus();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      setError(toFriendlyErrorMessage(err, 'Something went wrong'));
     } finally {
       setRunningAction(null);
       setProgressMessage(null);

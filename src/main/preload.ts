@@ -1,10 +1,48 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { CHANNELS } from './ipc/channels';
 import type { AuthResult } from '../common/types/auth';
 import type { CreateStyleExampleInput, StyleExample } from '../common/types/styleExample';
 import type { TranscriptionResult } from '../common/types/transcription';
 import type { AiConfigSchema } from '../common/types/aiConfig';
 import type { SetupProgressEvent, SetupStatus, WhisperModelSize } from '../common/types/setup';
+
+/**
+ * Duplicated from src/main/ipc/channels.ts rather than imported. This was a
+ * real bug, not a style choice: with `sandbox: true` on the BrowserWindow
+ * (which we want, for security), Electron's preload context cannot `require()`
+ * separate local application files — only a curated allowlist of Node
+ * built-ins. Importing `CHANNELS` from another file compiled to exactly that
+ * kind of `require()` and silently failed, leaving `window.dentiScribe`
+ * undefined and the whole app stuck on "Loading…" — caught by actually
+ * launching the packaged app and checking `typeof window.dentiScribe` in the
+ * real renderer, not by typecheck/lint (both passed the whole time). Keep
+ * this file's only value-level import as `electron` itself.
+ */
+const CHANNELS = {
+  authIsBootstrapNeeded: 'auth:isBootstrapNeeded',
+  authBootstrapFirstUser: 'auth:bootstrapFirstUser',
+  authLogin: 'auth:login',
+  authLogout: 'auth:logout',
+
+  styleExamplesList: 'styleExamples:list',
+  styleExamplesCreate: 'styleExamples:create',
+  styleExamplesDelete: 'styleExamples:delete',
+
+  scribeFormatNote: 'scribe:formatNote',
+  scribeTranscribeAudio: 'scribe:transcribeAudio',
+
+  settingsGetConfig: 'settings:getConfig',
+  settingsUpdateConfig: 'settings:updateConfig',
+  settingsSetCloudApiKey: 'settings:setCloudApiKey',
+  settingsClearCloudApiKey: 'settings:clearCloudApiKey',
+  settingsHasCloudApiKey: 'settings:hasCloudApiKey',
+
+  setupCheckStatus: 'setup:checkStatus',
+  setupInstallOllama: 'setup:installOllama',
+  setupPullOllamaModel: 'setup:pullOllamaModel',
+  setupInstallWhisper: 'setup:installWhisper',
+  setupDownloadWhisperModel: 'setup:downloadWhisperModel',
+  setupProgress: 'setup:progress',
+} as const;
 
 /**
  * The session token lives only in this module's closure. contextIsolation

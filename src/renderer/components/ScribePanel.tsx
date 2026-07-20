@@ -6,6 +6,7 @@ import { Badge } from './ui/Badge';
 import type { StyleExample } from '../../common/types/styleExample';
 import type { TranscriptionResult } from '../../common/types/transcription';
 import { AudioRecorder } from '../lib/audioCapture';
+import { toFriendlyErrorMessage } from '../lib/ipcError';
 
 function plainTranscriptionResult(text: string): TranscriptionResult {
   return { fullText: text, segments: [{ text, startMs: 0, endMs: 0 }], diarized: false };
@@ -27,6 +28,7 @@ export function ScribePanel() {
 
   const [examples, setExamples] = useState<StyleExample[]>([]);
   const [examplesLoading, setExamplesLoading] = useState(true);
+  const [examplesError, setExamplesError] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [addingExample, setAddingExample] = useState(false);
@@ -35,6 +37,7 @@ export function ScribePanel() {
     window.dentiScribe.styleExamples
       .list()
       .then(setExamples)
+      .catch((err) => setExamplesError(toFriendlyErrorMessage(err, 'Failed to load style examples')))
       .finally(() => setExamplesLoading(false));
   }, []);
 
@@ -52,7 +55,7 @@ export function ScribePanel() {
         setTranscriptionResult(result);
         setTranscript(result.fullText);
       } catch (err) {
-        setRecordError(err instanceof Error ? err.message : 'Failed to transcribe recording');
+        setRecordError(toFriendlyErrorMessage(err, 'Failed to transcribe recording'));
       } finally {
         setTranscribing(false);
       }
@@ -65,7 +68,7 @@ export function ScribePanel() {
       recorderRef.current = recorder;
       setIsRecording(true);
     } catch (err) {
-      setRecordError(err instanceof Error ? err.message : 'Could not access the microphone');
+      setRecordError(toFriendlyErrorMessage(err, 'Could not access the microphone'));
     }
   }
 
@@ -90,7 +93,7 @@ export function ScribePanel() {
       const result = await window.dentiScribe.scribe.formatNote(effectiveResult);
       setFormattedNote(result);
     } catch (err) {
-      setFormatError(err instanceof Error ? err.message : 'Failed to format note');
+      setFormatError(toFriendlyErrorMessage(err, 'Failed to format note'));
     } finally {
       setFormatting(false);
     }
@@ -106,19 +109,27 @@ export function ScribePanel() {
     e.preventDefault();
     if (!newTitle.trim() || !newContent.trim()) return;
     setAddingExample(true);
+    setExamplesError(null);
     try {
       const created = await window.dentiScribe.styleExamples.create({ title: newTitle, content: newContent });
       setExamples((prev) => [...prev, created]);
       setNewTitle('');
       setNewContent('');
+    } catch (err) {
+      setExamplesError(toFriendlyErrorMessage(err, 'Failed to add style example'));
     } finally {
       setAddingExample(false);
     }
   }
 
   async function handleDeleteExample(id: string) {
-    await window.dentiScribe.styleExamples.delete(id);
-    setExamples((prev) => prev.filter((e) => e.id !== id));
+    setExamplesError(null);
+    try {
+      await window.dentiScribe.styleExamples.delete(id);
+      setExamples((prev) => prev.filter((e) => e.id !== id));
+    } catch (err) {
+      setExamplesError(toFriendlyErrorMessage(err, 'Failed to remove style example'));
+    }
   }
 
   return (
@@ -217,6 +228,8 @@ export function ScribePanel() {
             ))
           )}
         </div>
+
+        {examplesError ? <p className="mb-2 text-sm text-accent-red">{examplesError}</p> : null}
 
         <form onSubmit={handleAddExample} className="space-y-2">
           <input

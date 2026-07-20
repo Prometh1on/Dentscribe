@@ -1,11 +1,14 @@
 import { app, BrowserWindow, dialog, session } from 'electron';
 import { join } from 'node:path';
+import { writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { getDatabase } from './db';
 import { registerAllIpcHandlers } from './ipc';
+import { startStaticServer } from './staticServer';
 
 const isDev = process.env.NODE_ENV === 'development';
 
-function createMainWindow(): void {
+async function createMainWindow(): Promise<void> {
   const win = new BrowserWindow({
     width: 1440,
     height: 900,
@@ -28,13 +31,32 @@ function createMainWindow(): void {
     // Compiled main lives at dist/main; Next's static export (`output: 'export'`) writes to
     // src/renderer/out (relative to the Next project root), not dist/renderer/out — verified
     // by actually running the build, not assumed. Two levels up from dist/main is the repo root.
-    win.loadFile(join(__dirname, '../../src/renderer/out/index.html'));
+    // Serving over a local HTTP server rather than win.loadFile()'s file:// protocol: Next's
+    // root-absolute asset paths (`/_next/static/...`) resolve to the filesystem root under
+    // file://, breaking every script/css load (confirmed via CDP network capture). An HTTP
+    // origin resolves those same root-absolute paths correctly.
+    const rootDir = join(__dirname, '../../src/renderer/out');
+    const { port } = await startStaticServer(rootDir);
+    win.loadURL(`http://127.0.0.1:${port}/index.html`);
   }
+}
+
+function reportStartupFailure(error: unknown): void {
+  // Without this, a startup failure (missing native module, corrupted DB key, disk full,
+  // static server failing to bind, ...) surfaces only as a silent unhandled-rejection
+  // warning — no window, no explanation, the user just sees nothing happen. Verified
+  // this exact gap twice by actually launching the packaged app: once against a missing
+  // native binary, and again when `createMainWindow` became async and a bare `void` call
+  // let its rejection bypass this handler entirely (fixed by awaiting it below).
+  const message = error instanceof Error ? (error.stack ?? error.message) : String(error);
+  writeFileSync(join(tmpdir(), 'dentiscribe-startup-error.log'), message);
+  dialog.showErrorBox('DentiScribe AI failed to start', message);
+  app.quit();
 }
 
 app
   .whenReady()
-  .then(() => {
+  .then(async () => {
     const db = getDatabase();
     registerAllIpcHandlers(db);
 
@@ -45,21 +67,13 @@ app
       callback(permission === 'media');
     });
 
-    createMainWindow();
+    await createMainWindow();
 
     app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
+      if (BrowserWindow.getAllWindows().length === 0) createMainWindow().catch(reportStartupFailure);
     });
   })
-  .catch((error: unknown) => {
-    // Without this, a startup failure (missing native module, corrupted DB key, disk full,
-    // ...) surfaced only as a silent unhandled-rejection warning — no window, no explanation,
-    // the user just sees nothing happen. Verified this exact gap by actually launching the
-    // packaged app against a missing native binary.
-    const message = error instanceof Error ? error.message : String(error);
-    dialog.showErrorBox('DentiScribe AI failed to start', message);
-    app.quit();
-  });
+  .catch(reportStartupFailure);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();

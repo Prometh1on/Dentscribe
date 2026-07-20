@@ -3,17 +3,22 @@
 import { useEffect, useState } from 'react';
 import { useSession } from './SessionContext';
 import { Card } from '../ui/Card';
+import { toFriendlyErrorMessage } from '../../lib/ipcError';
 
 export function LoginScreen() {
   const { login, bootstrapFirstUser } = useSession();
   const [bootstrapNeeded, setBootstrapNeeded] = useState<boolean | null>(null);
+  const [initError, setInitError] = useState<string | null>(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    window.dentiScribe.auth.isBootstrapNeeded().then(setBootstrapNeeded);
+    window.dentiScribe.auth
+      .isBootstrapNeeded()
+      .then(setBootstrapNeeded)
+      .catch((err) => setInitError(toFriendlyErrorMessage(err, 'Failed to start up')));
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -27,10 +32,20 @@ export function LoginScreen() {
         await login(username, password);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(toFriendlyErrorMessage(err, 'Login failed'));
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (initError) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-panel-bg">
+        <Card title="Couldn't start DentiScribe AI" className="w-96">
+          <p className="text-sm text-accent-red">{initError}</p>
+        </Card>
+      </div>
+    );
   }
 
   if (bootstrapNeeded === null) {
