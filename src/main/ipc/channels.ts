@@ -8,8 +8,13 @@ export const CHANNELS = {
   styleExamplesCreate: 'styleExamples:create',
   styleExamplesDelete: 'styleExamples:delete',
 
+  staffNamesList: 'staffNames:list',
+  staffNamesCreate: 'staffNames:create',
+  staffNamesDelete: 'staffNames:delete',
+
   scribeFormatNote: 'scribe:formatNote',
   scribeTranscribeAudio: 'scribe:transcribeAudio',
+  scribeGenerateDocument: 'scribe:generateDocument',
 
   settingsGetConfig: 'settings:getConfig',
   settingsUpdateConfig: 'settings:updateConfig',

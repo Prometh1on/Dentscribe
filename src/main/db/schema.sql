@@ -41,8 +41,22 @@ CREATE TABLE IF NOT EXISTS style_examples (
   user_id    TEXT NOT NULL REFERENCES users(id),
   title      TEXT NOT NULL,
   content    TEXT NOT NULL,
+  category   TEXT, -- one of common/types/category.ts's ConversationCategory values, or NULL
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_style_examples_user ON style_examples(user_id);
+
+-- The dentist's own remembered assisting-staff names (e.g. "which nurse was in the
+-- room"), for a quick add/select/remove list attached to the formatting prompt context.
+-- Not a staff/roles system — just short-lived, dentist-owned free text, same trust
+-- level and lifecycle as style_examples.
+CREATE TABLE IF NOT EXISTS staff_names (
+  id         TEXT PRIMARY KEY,
+  user_id    TEXT NOT NULL REFERENCES users(id),
+  name       TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_staff_names_user ON staff_names(user_id);

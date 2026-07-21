@@ -1,7 +1,10 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { AuthResult } from '../common/types/auth';
 import type { CreateStyleExampleInput, StyleExample } from '../common/types/styleExample';
+import type { CreateStaffNameInput, StaffName } from '../common/types/staffName';
 import type { TranscriptionResult } from '../common/types/transcription';
+import type { ConversationCategory } from '../common/types/category';
+import type { DocumentType } from '../common/types/document';
 import type { AiConfigSchema } from '../common/types/aiConfig';
 import type { SetupProgressEvent, SetupStatus, WhisperModelSize } from '../common/types/setup';
 
@@ -27,8 +30,13 @@ const CHANNELS = {
   styleExamplesCreate: 'styleExamples:create',
   styleExamplesDelete: 'styleExamples:delete',
 
+  staffNamesList: 'staffNames:list',
+  staffNamesCreate: 'staffNames:create',
+  staffNamesDelete: 'staffNames:delete',
+
   scribeFormatNote: 'scribe:formatNote',
   scribeTranscribeAudio: 'scribe:transcribeAudio',
+  scribeGenerateDocument: 'scribe:generateDocument',
 
   settingsGetConfig: 'settings:getConfig',
   settingsUpdateConfig: 'settings:updateConfig',
@@ -108,11 +116,19 @@ contextBridge.exposeInMainWorld('dentiScribe', {
     delete: (id: string) => invokeAuthenticated<void>(CHANNELS.styleExamplesDelete, id),
   },
 
+  staffNames: {
+    list: () => invokeAuthenticated<StaffName[]>(CHANNELS.staffNamesList),
+    create: (input: CreateStaffNameInput) => invokeAuthenticated<StaffName>(CHANNELS.staffNamesCreate, input),
+    delete: (id: string) => invokeAuthenticated<void>(CHANNELS.staffNamesDelete, id),
+  },
+
   scribe: {
-    formatNote: (transcriptionResult: TranscriptionResult) =>
-      invokeAuthenticated<string>(CHANNELS.scribeFormatNote, transcriptionResult),
+    formatNote: (transcriptionResult: TranscriptionResult, category?: ConversationCategory, assistingStaff?: string) =>
+      invokeAuthenticated<string>(CHANNELS.scribeFormatNote, transcriptionResult, category, assistingStaff),
     transcribeAudio: (wavBytes: ArrayBuffer, sampleRateHz: number) =>
       invokeAuthenticated<TranscriptionResult>(CHANNELS.scribeTranscribeAudio, wavBytes, sampleRateHz),
+    generateDocument: (formattedNote: string, documentType: DocumentType) =>
+      invokeAuthenticated<string>(CHANNELS.scribeGenerateDocument, formattedNote, documentType),
   },
 
   settings: {

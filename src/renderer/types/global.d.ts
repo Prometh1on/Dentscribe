@@ -1,6 +1,9 @@
 import type { AuthResult } from '../../common/types/auth';
 import type { CreateStyleExampleInput, StyleExample } from '../../common/types/styleExample';
+import type { CreateStaffNameInput, StaffName } from '../../common/types/staffName';
 import type { TranscriptionResult } from '../../common/types/transcription';
+import type { ConversationCategory } from '../../common/types/category';
+import type { DocumentType } from '../../common/types/document';
 import type { AiConfigSchema } from '../../common/types/aiConfig';
 import type { SetupProgressEvent, SetupStatus, WhisperModelSize } from '../../common/types/setup';
 
@@ -22,9 +25,19 @@ declare global {
         create: (input: CreateStyleExampleInput) => Promise<StyleExample>;
         delete: (id: string) => Promise<void>;
       };
+      staffNames: {
+        list: () => Promise<StaffName[]>;
+        create: (input: CreateStaffNameInput) => Promise<StaffName>;
+        delete: (id: string) => Promise<void>;
+      };
       scribe: {
-        formatNote: (transcriptionResult: TranscriptionResult) => Promise<string>;
+        formatNote: (
+          transcriptionResult: TranscriptionResult,
+          category?: ConversationCategory,
+          assistingStaff?: string
+        ) => Promise<string>;
         transcribeAudio: (wavBytes: ArrayBuffer, sampleRateHz: number) => Promise<TranscriptionResult>;
+        generateDocument: (formattedNote: string, documentType: DocumentType) => Promise<string>;
       };
       settings: {
         getConfig: () => Promise<AiConfigSchema>;

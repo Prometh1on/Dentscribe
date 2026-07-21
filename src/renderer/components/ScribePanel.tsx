@@ -3,8 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Card } from './ui/Card';
 import { Badge } from './ui/Badge';
+import { StaffNameField } from './StaffNameField';
+import { DocumentGenerator } from './DocumentGenerator';
 import type { StyleExample } from '../../common/types/styleExample';
 import type { TranscriptionResult } from '../../common/types/transcription';
+import { CONVERSATION_CATEGORIES, CONVERSATION_CATEGORY_LABELS, type ConversationCategory } from '../../common/types/category';
 import { AudioRecorder } from '../lib/audioCapture';
 import { toFriendlyErrorMessage } from '../lib/ipcError';
 
@@ -25,12 +28,15 @@ export function ScribePanel() {
   const [formatting, setFormatting] = useState(false);
   const [formatError, setFormatError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [category, setCategory] = useState<ConversationCategory>('other');
+  const [assistingStaff, setAssistingStaff] = useState('');
 
   const [examples, setExamples] = useState<StyleExample[]>([]);
   const [examplesLoading, setExamplesLoading] = useState(true);
   const [examplesError, setExamplesError] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
+  const [newExampleCategory, setNewExampleCategory] = useState<ConversationCategory>('other');
   const [addingExample, setAddingExample] = useState(false);
 
   useEffect(() => {
@@ -90,7 +96,7 @@ export function ScribePanel() {
         transcriptionResult && transcriptionResult.fullText === transcript
           ? transcriptionResult
           : plainTranscriptionResult(transcript);
-      const result = await window.dentiScribe.scribe.formatNote(effectiveResult);
+      const result = await window.dentiScribe.scribe.formatNote(effectiveResult, category, assistingStaff);
       setFormattedNote(result);
     } catch (err) {
       setFormatError(toFriendlyErrorMessage(err, 'Failed to format note'));
@@ -111,7 +117,11 @@ export function ScribePanel() {
     setAddingExample(true);
     setExamplesError(null);
     try {
-      const created = await window.dentiScribe.styleExamples.create({ title: newTitle, content: newContent });
+      const created = await window.dentiScribe.styleExamples.create({
+        title: newTitle,
+        content: newContent,
+        category: newExampleCategory === 'other' ? undefined : newExampleCategory,
+      });
       setExamples((prev) => [...prev, created]);
       setNewTitle('');
       setNewContent('');
@@ -141,6 +151,26 @@ export function ScribePanel() {
           value={transcript}
           onChange={(e) => handleTranscriptChange(e.target.value)}
         />
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <div>
+            <label className="mb-1 block text-xs text-slate-400" htmlFor="conversation-category">
+              Appointment Type
+            </label>
+            <select
+              id="conversation-category"
+              className="w-full rounded-lg border border-panel-border bg-panel-bg/60 p-2 text-sm text-slate-200 outline-none focus:border-accent-cyan"
+              value={category}
+              onChange={(e) => setCategory(e.target.value as ConversationCategory)}
+            >
+              {CONVERSATION_CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>
+                  {CONVERSATION_CATEGORY_LABELS[cat]}
+                </option>
+              ))}
+            </select>
+          </div>
+          <StaffNameField value={assistingStaff} onChange={setAssistingStaff} />
+        </div>
         <div className="mt-3 flex items-center gap-3">
           <button
             type="button"
@@ -202,6 +232,8 @@ export function ScribePanel() {
         </div>
       </Card>
 
+      <DocumentGenerator formattedNote={formattedNote} />
+
       <Card title="My Style Examples">
         <div className="mb-3 max-h-40 space-y-2 overflow-y-auto">
           {examplesLoading ? (
@@ -216,11 +248,16 @@ export function ScribePanel() {
                 key={example.id}
                 className="flex items-center justify-between rounded-lg border border-panel-border bg-panel-bg/60 px-3 py-2 text-sm"
               >
-                <span className="truncate text-slate-200">{example.title}</span>
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="truncate text-slate-200">{example.title}</span>
+                  {example.category ? (
+                    <Badge tone="neutral">{CONVERSATION_CATEGORY_LABELS[example.category]}</Badge>
+                  ) : null}
+                </span>
                 <button
                   type="button"
                   onClick={() => handleDeleteExample(example.id)}
-                  className="ml-2 text-xs text-slate-500 transition hover:text-accent-red"
+                  className="ml-2 shrink-0 text-xs text-slate-500 transition hover:text-accent-red"
                 >
                   Remove
                 </button>
@@ -244,6 +281,17 @@ export function ScribePanel() {
             value={newContent}
             onChange={(e) => setNewContent(e.target.value)}
           />
+          <select
+            className="w-full rounded-lg border border-panel-border bg-panel-bg/60 p-2 text-sm text-slate-200 outline-none focus:border-accent-cyan"
+            value={newExampleCategory}
+            onChange={(e) => setNewExampleCategory(e.target.value as ConversationCategory)}
+          >
+            {CONVERSATION_CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>
+                {CONVERSATION_CATEGORY_LABELS[cat]}
+              </option>
+            ))}
+          </select>
           <button
             type="submit"
             disabled={addingExample || !newTitle.trim() || !newContent.trim()}
