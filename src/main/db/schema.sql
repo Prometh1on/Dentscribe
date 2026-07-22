@@ -37,16 +37,55 @@ CREATE TABLE IF NOT EXISTS sessions (
 -- new transcript (src/main/ai/formatting/noteFormatter.ts). More examples can be added
 -- at any time — there is no training/fine-tuning step, just more prompt context.
 CREATE TABLE IF NOT EXISTS style_examples (
-  id         TEXT PRIMARY KEY,
-  user_id    TEXT NOT NULL REFERENCES users(id),
-  title      TEXT NOT NULL,
-  content    TEXT NOT NULL,
-  category   TEXT, -- one of common/types/category.ts's ConversationCategory values, or NULL
-  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  id              TEXT PRIMARY KEY,
+  user_id         TEXT NOT NULL REFERENCES users(id),
+  title           TEXT NOT NULL,
+  content         TEXT NOT NULL,
+  category        TEXT, -- one of common/types/category.ts's ConversationCategory values, or NULL
+  extracted_style TEXT, -- LLM-derived plain-language style summary, or NULL — see styleAnalyzer.ts
+  created_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_style_examples_user ON style_examples(user_id);
+
+-- One row per user: free-form + structured formatting preferences, folded into the
+-- system prompt on every formatting request (src/main/ai/formatting/noteFormatter.ts).
+-- Deliberately not per-example — these are practice-wide conventions, not tied to any
+-- one style example.
+CREATE TABLE IF NOT EXISTS dentist_profiles (
+  user_id             TEXT PRIMARY KEY REFERENCES users(id),
+  style_notes         TEXT NOT NULL DEFAULT '',
+  tooth_numbering     TEXT NOT NULL DEFAULT 'universal', -- ToothNumberingSystem
+  abbreviation_policy TEXT NOT NULL DEFAULT 'preserve',   -- AbbreviationPolicy
+  specialty           TEXT NOT NULL DEFAULT '',
+  updated_at          TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+-- "Avoid X, prefer Y" terminology pairs (e.g. avoid "filling", prefer "restoration"),
+-- folded into the system prompt the same way as dentist_profiles.
+CREATE TABLE IF NOT EXISTS terminology_preferences (
+  id          TEXT PRIMARY KEY,
+  user_id     TEXT NOT NULL REFERENCES users(id),
+  avoid_term  TEXT NOT NULL,
+  prefer_term TEXT NOT NULL,
+  created_at  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_terminology_preferences_user ON terminology_preferences(user_id);
+
+-- Explicit abbreviation → expansion pairs the dentist wants recognized regardless of
+-- the general abbreviation_policy above (e.g. always expand "RCT" to "root canal
+-- treatment" even if the policy is otherwise "preserve").
+CREATE TABLE IF NOT EXISTS abbreviation_preferences (
+  id           TEXT PRIMARY KEY,
+  user_id      TEXT NOT NULL REFERENCES users(id),
+  abbreviation TEXT NOT NULL,
+  expansion    TEXT NOT NULL,
+  created_at   TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_abbreviation_preferences_user ON abbreviation_preferences(user_id);
 
 -- The dentist's own remembered assisting-staff names (e.g. "which nurse was in the
 -- room"), for a quick add/select/remove list attached to the formatting prompt context.

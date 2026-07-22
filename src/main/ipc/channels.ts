@@ -12,6 +12,17 @@ export const CHANNELS = {
   staffNamesCreate: 'staffNames:create',
   staffNamesDelete: 'staffNames:delete',
 
+  dentistProfileGet: 'dentistProfile:get',
+  dentistProfileUpdate: 'dentistProfile:update',
+
+  terminologyPreferencesList: 'terminologyPreferences:list',
+  terminologyPreferencesCreate: 'terminologyPreferences:create',
+  terminologyPreferencesDelete: 'terminologyPreferences:delete',
+
+  abbreviationPreferencesList: 'abbreviationPreferences:list',
+  abbreviationPreferencesCreate: 'abbreviationPreferences:create',
+  abbreviationPreferencesDelete: 'abbreviationPreferences:delete',
+
   scribeFormatNote: 'scribe:formatNote',
   scribeTranscribeAudio: 'scribe:transcribeAudio',
   scribeGenerateDocument: 'scribe:generateDocument',

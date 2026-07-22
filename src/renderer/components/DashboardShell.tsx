@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ScribePanel } from './ScribePanel';
 import { SettingsPanel } from './settings/SettingsPanel';
 import { SetupWizard } from './setup/SetupWizard';
+import { PersonalizationPanel } from './personalization/PersonalizationPanel';
 
 interface DashboardShellProps {
   username: string;
@@ -12,6 +13,7 @@ interface DashboardShellProps {
 
 export function DashboardShell({ username, onLogout }: DashboardShellProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [personalizationOpen, setPersonalizationOpen] = useState(false);
   const [setupOpen, setSetupOpen] = useState(false);
   const [checkedSetupOnLoad, setCheckedSetupOnLoad] = useState(false);
 
@@ -39,6 +41,13 @@ export function DashboardShell({ username, onLogout }: DashboardShellProps) {
           </button>
           <button
             type="button"
+            onClick={() => setPersonalizationOpen(true)}
+            className="text-xs font-medium text-slate-400 transition hover:text-accent-cyan"
+          >
+            Personalisation
+          </button>
+          <button
+            type="button"
             onClick={() => setSettingsOpen(true)}
             className="text-xs font-medium text-slate-400 transition hover:text-accent-cyan"
           >
@@ -62,6 +71,7 @@ export function DashboardShell({ username, onLogout }: DashboardShellProps) {
       </main>
 
       {settingsOpen ? <SettingsPanel onClose={() => setSettingsOpen(false)} /> : null}
+      {personalizationOpen ? <PersonalizationPanel onClose={() => setPersonalizationOpen(false)} /> : null}
       {checkedSetupOnLoad && setupOpen ? <SetupWizard onDone={() => setSetupOpen(false)} /> : null}
     </div>
   );

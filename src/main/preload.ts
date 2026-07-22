@@ -2,6 +2,13 @@ import { contextBridge, ipcRenderer } from 'electron';
 import type { AuthResult } from '../common/types/auth';
 import type { CreateStyleExampleInput, StyleExample } from '../common/types/styleExample';
 import type { CreateStaffNameInput, StaffName } from '../common/types/staffName';
+import type {
+  AbbreviationPreference,
+  CreateAbbreviationPreferenceInput,
+  CreateTerminologyPreferenceInput,
+  DentistProfile,
+  TerminologyPreference,
+} from '../common/types/dentistProfile';
 import type { TranscriptionResult } from '../common/types/transcription';
 import type { ConversationCategory } from '../common/types/category';
 import type { DocumentType } from '../common/types/document';
@@ -33,6 +40,17 @@ const CHANNELS = {
   staffNamesList: 'staffNames:list',
   staffNamesCreate: 'staffNames:create',
   staffNamesDelete: 'staffNames:delete',
+
+  dentistProfileGet: 'dentistProfile:get',
+  dentistProfileUpdate: 'dentistProfile:update',
+
+  terminologyPreferencesList: 'terminologyPreferences:list',
+  terminologyPreferencesCreate: 'terminologyPreferences:create',
+  terminologyPreferencesDelete: 'terminologyPreferences:delete',
+
+  abbreviationPreferencesList: 'abbreviationPreferences:list',
+  abbreviationPreferencesCreate: 'abbreviationPreferences:create',
+  abbreviationPreferencesDelete: 'abbreviationPreferences:delete',
 
   scribeFormatNote: 'scribe:formatNote',
   scribeTranscribeAudio: 'scribe:transcribeAudio',
@@ -120,6 +138,25 @@ contextBridge.exposeInMainWorld('dentiScribe', {
     list: () => invokeAuthenticated<StaffName[]>(CHANNELS.staffNamesList),
     create: (input: CreateStaffNameInput) => invokeAuthenticated<StaffName>(CHANNELS.staffNamesCreate, input),
     delete: (id: string) => invokeAuthenticated<void>(CHANNELS.staffNamesDelete, id),
+  },
+
+  dentistProfile: {
+    get: () => invokeAuthenticated<DentistProfile>(CHANNELS.dentistProfileGet),
+    update: (patch: Partial<DentistProfile>) => invokeAuthenticated<DentistProfile>(CHANNELS.dentistProfileUpdate, patch),
+  },
+
+  terminologyPreferences: {
+    list: () => invokeAuthenticated<TerminologyPreference[]>(CHANNELS.terminologyPreferencesList),
+    create: (input: CreateTerminologyPreferenceInput) =>
+      invokeAuthenticated<TerminologyPreference>(CHANNELS.terminologyPreferencesCreate, input),
+    delete: (id: string) => invokeAuthenticated<void>(CHANNELS.terminologyPreferencesDelete, id),
+  },
+
+  abbreviationPreferences: {
+    list: () => invokeAuthenticated<AbbreviationPreference[]>(CHANNELS.abbreviationPreferencesList),
+    create: (input: CreateAbbreviationPreferenceInput) =>
+      invokeAuthenticated<AbbreviationPreference>(CHANNELS.abbreviationPreferencesCreate, input),
+    delete: (id: string) => invokeAuthenticated<void>(CHANNELS.abbreviationPreferencesDelete, id),
   },
 
   scribe: {

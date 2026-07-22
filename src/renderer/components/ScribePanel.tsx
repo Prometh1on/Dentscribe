@@ -1,15 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Card } from './ui/Card';
 import { Badge } from './ui/Badge';
 import { StaffNameField } from './StaffNameField';
 import { DocumentGenerator } from './DocumentGenerator';
-import type { StyleExample } from '../../common/types/styleExample';
 import type { TranscriptionResult } from '../../common/types/transcription';
 import { CONVERSATION_CATEGORIES, CONVERSATION_CATEGORY_LABELS, type ConversationCategory } from '../../common/types/category';
 import { AudioRecorder } from '../lib/audioCapture';
 import { toFriendlyErrorMessage } from '../lib/ipcError';
+import { useStyleExamples } from '../hooks/useStyleExamples';
 
 function plainTranscriptionResult(text: string): TranscriptionResult {
   return { fullText: text, segments: [{ text, startMs: 0, endMs: 0 }], diarized: false };
@@ -31,21 +31,17 @@ export function ScribePanel() {
   const [category, setCategory] = useState<ConversationCategory>('other');
   const [assistingStaff, setAssistingStaff] = useState('');
 
-  const [examples, setExamples] = useState<StyleExample[]>([]);
-  const [examplesLoading, setExamplesLoading] = useState(true);
-  const [examplesError, setExamplesError] = useState<string | null>(null);
+  const {
+    examples,
+    loading: examplesLoading,
+    saving: addingExample,
+    error: examplesError,
+    addExample,
+    removeExample,
+  } = useStyleExamples();
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [newExampleCategory, setNewExampleCategory] = useState<ConversationCategory>('other');
-  const [addingExample, setAddingExample] = useState(false);
-
-  useEffect(() => {
-    window.dentiScribe.styleExamples
-      .list()
-      .then(setExamples)
-      .catch((err) => setExamplesError(toFriendlyErrorMessage(err, 'Failed to load style examples')))
-      .finally(() => setExamplesLoading(false));
-  }, []);
 
   async function handleToggleRecording() {
     setRecordError(null);
@@ -114,31 +110,14 @@ export function ScribePanel() {
   async function handleAddExample(e: React.FormEvent) {
     e.preventDefault();
     if (!newTitle.trim() || !newContent.trim()) return;
-    setAddingExample(true);
-    setExamplesError(null);
-    try {
-      const created = await window.dentiScribe.styleExamples.create({
-        title: newTitle,
-        content: newContent,
-        category: newExampleCategory === 'other' ? undefined : newExampleCategory,
-      });
-      setExamples((prev) => [...prev, created]);
+    const ok = await addExample({
+      title: newTitle,
+      content: newContent,
+      category: newExampleCategory === 'other' ? undefined : newExampleCategory,
+    });
+    if (ok) {
       setNewTitle('');
       setNewContent('');
-    } catch (err) {
-      setExamplesError(toFriendlyErrorMessage(err, 'Failed to add style example'));
-    } finally {
-      setAddingExample(false);
-    }
-  }
-
-  async function handleDeleteExample(id: string) {
-    setExamplesError(null);
-    try {
-      await window.dentiScribe.styleExamples.delete(id);
-      setExamples((prev) => prev.filter((e) => e.id !== id));
-    } catch (err) {
-      setExamplesError(toFriendlyErrorMessage(err, 'Failed to remove style example'));
     }
   }
 
@@ -256,7 +235,7 @@ export function ScribePanel() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => handleDeleteExample(example.id)}
+                  onClick={() => removeExample(example.id)}
                   className="ml-2 shrink-0 text-xs text-slate-500 transition hover:text-accent-red"
                 >
                   Remove

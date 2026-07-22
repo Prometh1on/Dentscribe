@@ -22,6 +22,10 @@ function runColumnMigrations(instance: DatabaseInstance): void {
   if (!hasCategoryColumn) {
     instance.exec('ALTER TABLE style_examples ADD COLUMN category TEXT');
   }
+  const hasExtractedStyleColumn = styleExampleColumns.some((column) => column.name === 'extracted_style');
+  if (!hasExtractedStyleColumn) {
+    instance.exec('ALTER TABLE style_examples ADD COLUMN extracted_style TEXT');
+  }
 }
 
 export function getDatabase(): DatabaseInstance {

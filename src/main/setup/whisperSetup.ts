@@ -3,6 +3,18 @@ import { createWriteStream, existsSync, mkdirSync } from 'node:fs';
 import { unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { app } from 'electron';
+
+/**
+ * Explicit path, not a bare `tar` PATH lookup — verified against a real failure: on any
+ * machine with Git for Windows installed, its bundled GNU tar
+ * (`Program Files\Git\usr\bin\tar.exe`) resolves ahead of Windows' own tar.exe in PATH.
+ * GNU tar doesn't extract .zip natively and misparses a `C:\...` archive argument as a
+ * remote `host:path` spec (its `user@host:file` syntax), failing with
+ * "tar: Cannot connect to C: resolve failed". Windows' native tar.exe (libarchive-based,
+ * ships since 10 1803) handles .zip and Windows paths correctly — pointing at it directly
+ * sidesteps the PATH-ordering issue entirely rather than hoping `tar` resolves right.
+ */
+const WINDOWS_TAR_PATH = join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'tar.exe');
 import type { SetupProgressEvent, WhisperModelSize } from '../../common/types/setup';
 
 /**
@@ -70,7 +82,7 @@ async function downloadFile(url: string, destPath: string, onPercent: (percent: 
 function extractZip(zipPath: string, destDir: string): Promise<void> {
   return new Promise((resolve, reject) => {
     mkdirSync(destDir, { recursive: true });
-    const proc = spawn('tar', ['-xf', zipPath, '-C', destDir]);
+    const proc = spawn(WINDOWS_TAR_PATH, ['-xf', zipPath, '-C', destDir]);
 
     let stderr = '';
     proc.stderr.on('data', (chunk) => {

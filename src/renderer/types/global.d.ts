@@ -1,6 +1,13 @@
 import type { AuthResult } from '../../common/types/auth';
 import type { CreateStyleExampleInput, StyleExample } from '../../common/types/styleExample';
 import type { CreateStaffNameInput, StaffName } from '../../common/types/staffName';
+import type {
+  AbbreviationPreference,
+  CreateAbbreviationPreferenceInput,
+  CreateTerminologyPreferenceInput,
+  DentistProfile,
+  TerminologyPreference,
+} from '../../common/types/dentistProfile';
 import type { TranscriptionResult } from '../../common/types/transcription';
 import type { ConversationCategory } from '../../common/types/category';
 import type { DocumentType } from '../../common/types/document';
@@ -28,6 +35,20 @@ declare global {
       staffNames: {
         list: () => Promise<StaffName[]>;
         create: (input: CreateStaffNameInput) => Promise<StaffName>;
+        delete: (id: string) => Promise<void>;
+      };
+      dentistProfile: {
+        get: () => Promise<DentistProfile>;
+        update: (patch: Partial<DentistProfile>) => Promise<DentistProfile>;
+      };
+      terminologyPreferences: {
+        list: () => Promise<TerminologyPreference[]>;
+        create: (input: CreateTerminologyPreferenceInput) => Promise<TerminologyPreference>;
+        delete: (id: string) => Promise<void>;
+      };
+      abbreviationPreferences: {
+        list: () => Promise<AbbreviationPreference[]>;
+        create: (input: CreateAbbreviationPreferenceInput) => Promise<AbbreviationPreference>;
         delete: (id: string) => Promise<void>;
       };
       scribe: {

@@ -55,17 +55,28 @@ export function installOllama(onProgress: (event: SetupProgressEvent) => void): 
       '--accept-source-agreements',
     ]);
 
+    // Verified against a real run on a machine that already had Ollama installed:
+    // winget exits non-zero (43 observed) and prints "Found an existing package already
+    // installed... No available upgrade found." to STDOUT (not stderr) in that case —
+    // a perfectly fine outcome for this app's purposes (Ollama is present either way),
+    // not a real failure. Capturing stdout too, since the old stderr-only capture would
+    // have shown an empty message even on a genuine failure that only wrote to stdout.
+    let stdout = '';
     let stderr = '';
+    proc.stdout.on('data', (chunk) => {
+      stdout += chunk.toString();
+    });
     proc.stderr.on('data', (chunk) => {
       stderr += chunk.toString();
     });
     proc.on('error', reject);
     proc.on('close', (code) => {
-      if (code === 0) {
+      const alreadyInstalled = /already installed/i.test(stdout);
+      if (code === 0 || alreadyInstalled) {
         onProgress({ step: 'ollama-install', message: 'Ollama installed.', percent: 100 });
         resolve();
       } else {
-        reject(new Error(`Installing Ollama failed (winget exited ${code}): ${stderr}`));
+        reject(new Error(`Installing Ollama failed (winget exited ${code}): ${stdout}${stderr}`));
       }
     });
   });

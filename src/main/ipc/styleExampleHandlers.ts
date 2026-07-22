@@ -1,9 +1,15 @@
 import { ipcMain } from 'electron';
 import type { DatabaseInstance } from '../db/types';
-import type { CreateStyleExampleInput } from '../../common/types/styleExample';
+import type { CreateStyleExampleInput, StyleExample } from '../../common/types/styleExample';
 import { CHANNELS } from './channels';
 import { withAuth } from './withAuth';
-import { createStyleExample, deleteStyleExample, listStyleExamples } from '../db/repositories/styleExamplesRepo';
+import {
+  createStyleExample,
+  deleteStyleExample,
+  listStyleExamples,
+  setStyleExampleExtractedStyle,
+} from '../db/repositories/styleExamplesRepo';
+import { extractStyleSummary } from '../ai/styleExtraction/styleAnalyzer';
 
 export function registerStyleExampleHandlers(db: DatabaseInstance): void {
   ipcMain.handle(
@@ -13,7 +19,15 @@ export function registerStyleExampleHandlers(db: DatabaseInstance): void {
 
   ipcMain.handle(
     CHANNELS.styleExamplesCreate,
-    withAuth(db, (ctx, input: CreateStyleExampleInput) => createStyleExample(db, ctx.userId, input))
+    withAuth(db, async (ctx, input: CreateStyleExampleInput): Promise<StyleExample> => {
+      const created = createStyleExample(db, ctx.userId, input);
+      const extractedStyle = await extractStyleSummary(input.content);
+      if (extractedStyle) {
+        setStyleExampleExtractedStyle(db, created.id, extractedStyle);
+        return { ...created, extractedStyle };
+      }
+      return created;
+    })
   );
 
   ipcMain.handle(

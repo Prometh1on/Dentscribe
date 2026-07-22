@@ -67,32 +67,47 @@
   <div class="wrap">
     <a class="back" href="./index.html">&larr; Back</a>
     <h1>Getting Started</h1>
-    <p>Takes about 10 minutes the first time, mostly waiting for downloads. After that, using it takes seconds.</p>
+    <p>Takes about 10 minutes the first time, mostly waiting for downloads. After that, using it takes seconds. No technical knowledge, GitHub account, or IT department required — just a Windows computer and an internet connection.</p>
 
-    <h2><span class="step-num">1</span>Install</h2>
-    <p>Download the installer from the home page and double-click it.</p>
+    <h2><span class="step-num">1</span>Download the installer</h2>
+    <p>Go back to the <a href="./index.html">home page</a> and click the big <strong>"Download for Windows"</strong> button. Your browser will save a file — usually to a folder called <strong>Downloads</strong>. Most browsers show it at the bottom of the window or in a small pop-up when it finishes; you can click that to open it directly, or open your <strong>Downloads</strong> folder and look for a file named something like <code>DentiScribe.AI.Setup.0.1.0.exe</code>.</p>
+
+    <h2><span class="step-num">2</span>Run it</h2>
+    <p><strong>Double-click</strong> that downloaded file (click twice quickly with the left mouse button) to start it.</p>
     <div class="box">
-      <p><strong>You'll see a blue "Windows protected your PC" screen.</strong> This is completely normal for free software from an independent developer — it's not a virus warning, it just means the file hasn't gone through Microsoft's paid certification program.</p>
-      <p>Click <strong>"More info"</strong> (small text, easy to miss), then click the <strong>"Run anyway"</strong> button that appears.</p>
+      <p><strong>You'll see a blue "Windows protected your PC" screen.</strong> This is completely normal for free software from an independent developer — it's not a virus warning, it just means the file hasn't gone through Microsoft's paid certification program (which costs money and isn't worth it for a free app).</p>
+      <p>Click the small <strong>"More info"</strong> text (easy to miss, it's not a button), then click the <strong>"Run anyway"</strong> button that appears below it.</p>
     </div>
-    <p>The app installs itself — no need to choose folders or click through options. It'll open automatically when done.</p>
+    <p>The app installs itself automatically — there's nothing to choose, no folders to pick, no options to configure. A window titled "DentiScribe AI" will open by itself when it's done, usually within a few seconds.</p>
 
-    <h2><span class="step-num">2</span>Create your account</h2>
-    <p>First time you open it, you'll be asked to create an account — just a username and password for this app, stored only on this computer. This isn't shared with anyone.</p>
+    <h2><span class="step-num">3</span>Create your account</h2>
+    <p>First time you open it, you'll be asked to create an account — just pick any username and password for this app. It's stored only on this computer and isn't shared with anyone, including us. Type a username, type a password, click <strong>"Create Account."</strong> Remember these — there's no "forgot password" link, since nothing is stored anywhere except your own computer.</p>
 
-    <h2><span class="step-num">3</span>Run the one-time setup</h2>
+    <h2><span class="step-num">4</span>Run the one-time setup</h2>
     <p>A setup screen appears automatically the first time. It installs two small, free pieces of software the app needs to run its AI locally:</p>
     <ul>
       <li><strong>Ollama</strong> — the note-formatting engine</li>
       <li><strong>Whisper</strong> — the transcription engine</li>
     </ul>
-    <p>Click each "Install" / "Download" button in order and wait for the progress bar. This downloads a few gigabytes total, so it's worth doing on a decent internet connection. You only need to do this once.</p>
+    <p>Click each "Install" / "Download" button in order and wait for the progress bar to finish before clicking the next one. This downloads a few gigabytes total, so it's worth doing on a decent internet connection — plug into Wi-Fi and maybe grab a coffee. You only need to do this once, ever.</p>
     <p>If something fails partway through, click <strong>"Skip for now"</strong> — you can reopen this screen anytime from the <strong>Setup</strong> button at the top of the app and pick up where you left off.</p>
 
-    <h2><span class="step-num">4</span>Teach it your style</h2>
-    <p>In the main screen, find <strong>"My Style Examples."</strong> Paste in 2-3 of your own previously-written notes (formatted however you normally write them). The AI uses these as a reference so its output matches how you actually write, not a generic template.</p>
+    <div class="box">
+      <p><strong>"Install Ollama" or "Install Whisper Engine" seems stuck or failed?</strong> Everything here is 100% free and runs on your own computer — there's no paid alternative, and you shouldn't need one. Try these in order:</p>
+      <ol>
+        <li><strong>Just click the button again.</strong> Most failures are a slow or temporarily-interrupted download — clicking "Install Ollama" or "Install Whisper Engine" a second time picks up where it left off or retries cleanly.</li>
+        <li><strong>Check your internet connection is stable</strong> — these downloads are a few gigabytes total, so a Wi-Fi connection that drops out partway through can interrupt them. A wired connection or moving closer to your router helps.</li>
+        <li><strong>Check you have enough free disk space</strong> — right-click your <strong>C:</strong> drive in File Explorer → Properties, and make sure you have at least 10GB free. Delete some files (or empty the Recycle Bin) if not.</li>
+        <li><strong>Restart the app</strong> — close DentiScribe AI completely and reopen it, then click <strong>Setup</strong> at the top to bring the install screen back and try again.</li>
+        <li><strong>Still stuck?</strong> Email <a href="mailto:McMusclesO@gmail.com">McMusclesO@gmail.com</a> with a description of what happened (which button, what message appeared) and we'll help directly — no charge, ever.</li>
+      </ol>
+      <p style="margin-top:1rem;"><strong>What Ollama and Whisper actually are, in plain terms:</strong> they're two small background programs that do the AI work — Ollama turns your transcript into a formatted note, Whisper turns recorded audio into text. You never open or interact with them directly; the DentiScribe AI window is the only thing you use. Once installed, they quietly run in the background whenever DentiScribe AI needs them, using no internet and sending nothing anywhere.</p>
+    </div>
 
-    <h2><span class="step-num">5</span>Use it</h2>
+    <h2><span class="step-num">5</span>Teach it your style</h2>
+    <p>In the main screen, find <strong>"My Style Examples."</strong> Paste in 2-3 of your own previously-written notes (formatted however you normally write them). The AI uses these as a reference so its output matches how you actually write, not a generic template. You can skip this and add examples later — the app works without it, just with more generic formatting.</p>
+
+    <h2><span class="step-num">6</span>Use it</h2>
     <ol>
       <li>Click <strong>"Start Recording"</strong> during or after an encounter (or just paste in a transcript if you already have one)</li>
       <li>Click <strong>"Stop Recording"</strong> when done — it transcribes automatically</li>
